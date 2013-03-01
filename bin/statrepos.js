@@ -5,7 +5,7 @@
  *
  *	@date 3/1/13	 
  *	@author Evan Lucas
- *	
+ *	@copyright 2013 Evan Lucas
  */
 
 
