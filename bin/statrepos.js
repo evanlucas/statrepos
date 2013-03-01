@@ -12,14 +12,28 @@
 var fs = require('fs'),
 	utils = require('../lib/util'),
 	util = require('util'),
+	program = require('commander'),
 	exec = require('child_process').exec,
 	homedir = process.env['HOME'],
 	clc = require('cli-color'),
+	pkg = require('./package.json'),
 	cyan = clc.cyan.bold,
 	magenta = clc.magenta.bold,
 	red = clc.red.bold;
+	
+program
+	.version(pkg.version)
+	.option('-s, --status', 'Checks the status of registered repositories')
+	.option('-v, --verbose', 'More verbose output')
+	.option('-l, --list', 'Lists registered repositories')
+	.option('-d, --detailed', 'Provides detailed output')
+	.option('-a, --add [dir]', 'Add directory to be monitored')
+	.option('-r, --remove [dir]', 'Remove monitored repository from being checked.')
+	.parse(process.argv);
 
-var programArgs = process.argv.splice(2);
+
+
+//var programArgs = process.argv.splice(2);
 var verbose = false,
 	longOutput = false,
 	shouldCheck = false,
@@ -87,6 +101,8 @@ var processArgs = function() {
 		}
 	}
 }
+
+
 
 /**
   returns ~/statrepos.json
