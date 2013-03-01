@@ -10,99 +10,31 @@
 
 
 var fs = require('fs'),
-	utils = require('../lib/util'),
 	util = require('util'),
 	program = require('commander'),
 	exec = require('child_process').exec,
 	homedir = process.env['HOME'],
-	clc = require('cli-color'),
-	pkg = require('./package.json'),
-	cyan = clc.cyan.bold,
-	magenta = clc.magenta.bold,
-	red = clc.red.bold;
+	colors = require('colors'),
+	Table = require('cli-table'),
+	error = colors.red,
+	warning = colors.yellow,
+	info = colors.cyan,
+	notice = colors.magenta;
 	
 program
-	.version(pkg.version)
+	.version('0.0.2')
+	.usage('[options]')
 	.option('-s, --status', 'Checks the status of registered repositories')
 	.option('-v, --verbose', 'More verbose output')
 	.option('-l, --list', 'Lists registered repositories')
-	.option('-d, --detailed', 'Provides detailed output')
 	.option('-a, --add [dir]', 'Add directory to be monitored')
 	.option('-r, --remove [dir]', 'Remove monitored repository from being checked.')
 	.parse(process.argv);
 
 
-
-//var programArgs = process.argv.splice(2);
-var verbose = false,
-	longOutput = false,
-	shouldCheck = false,
-	shouldAdd = false,
-	shouldRemove = false,
-	shouldList = false,
-	reposToRemove = [],
-	reposToAdd = [],
-	config = {};
+var config = {};
 
 config.repos = [];
-	
-
-var usage = function(shouldContinue) {
-	console.log("");
-	utils.printWarning('Usage:');
-	utils.printNotice('	./statrepos [-s|--status] [-v|--verbose] [-d|--detailed] [-l|--list] [-a|--add <dir>] [-r|--remove <dir>]');
-	console.log("");
-	utils.printNotice('		-s | --status			Checks the status of registered repositories');
-	utils.printNotice('		-v | --verbose			Verbose');
-	utils.printNotice('		-l | --list			Lists registered repositories');
-	utils.printNotice('		-d | --detailed			Detailed output'); 
-	utils.printNotice('		-a | --add <dir>		Add directory to be monitored.');
-	utils.printNotice('		-r | --remove <dir>		Remove monitored repository from being check.');
-	if (!shouldContinue) {
-		process.exit(1);
-	}
-}
-
-var getSpace = function(count) {
-	var s = "";
-	for (var i=0; i<count; i++) {
-		s += " ";
-	}
-	return s;
-}
-
-var processArgs = function() {
-	for (var i=0; i<programArgs.length; i++) {
-		var arg = programArgs[i];
-		if (arg == '-v' || arg == '--verbose') {
-			verbose = true;
-		} else if (arg == '-d' || arg == '--detailed') {
-			longOutput = true;
-		} else if (arg == '-l' || arg == '--list') {
-			shouldList = true;
-		} else if (arg == '-s' || arg == '--status') {
-			shouldCheck = true;
-		} else if (arg == '-r' || arg == '--remove') {
-			shouldRemove = true;
-			if (programArgs.length > i+1) {
-				reposToRemove.push(programArgs[i+1]);
-			} else {
-				utils.printError('[statrepos] - Removing a repository requires the repository path');
-				usage(false);
-			}
-		} else if (arg == '-a' || arg == '--add') {
-			shouldAdd = true;
-			if (programArgs.length > i + 1) {
-				reposToAdd.push(programArgs[i+1]);
-			} else {
-				utils.printError('[statrepos] - Adding a repository requires the repository path.');
-				usage(false);
-			}
-		}
-	}
-}
-
-
 
 /**
   returns ~/statrepos.json
@@ -112,21 +44,34 @@ var configPath = function() {
 }
 
 /**
+  writes the config object to configPath()
+ */
+var writeConfig = function(cb) {
+	fs.writeFile(configPath(), JSON.stringify(config), function(err) {
+		if (err) {
+			console.log(error('[statrepos] - Error writing configuration.'));
+			return cb(err);
+		} else {
+			return cb(null);
+		}
+	});
+}
+
+/**
   reads config, creates it if it doesn't already exist
  */
 var readConfig = function() {
 	if (!fs.existsSync(configPath())) {
-		utils.printError('[statrepos] - Configuration does not exist.');
+		console.log(error('[statrepos] - Configuration does not exist.'));
 		config.repos = [];
-		console.log(JSON.stringify(config));
 		fs.writeFile(configPath(), JSON.stringify(config), function(err){
 			if (err) {
-				utils.printError('[statrepos] - Error writing configuration.');
+				console.log(error('[statrepos] - Error writing configuration.'));
 				process.exit(1);
 			}
 			
-			if (verbose) {
-				utils.printInfo('[statrepos] - Successfully wrote configuration.');
+			if (program.verbose) {
+				console.log(info('[statrepos] - Successfully wrote configuration.'));
 			}
 		});
 	} else {
@@ -136,183 +81,147 @@ var readConfig = function() {
 
 /**
   check status for a single repository
-  @param repo {String} The full path to the repository
-  @param lo {Boolean} Whether to output longOutput
+  @param i {Integer} The index of the repository to stat
   @param cb {Function} function(err, data)
  */
-var statRepo = function(repo, lo, cb) {
+var statRepo = function(i, cb) {
+	var repo = config.repos[i];
 	var cmd = 'cd '+repo+' && git status';
 	var folder = repo.split('/');
 	var foldername = folder[folder.length-1];
-	var repoStatus = "clean";
+	var repoStatus = "CLEAN".magenta;
 	var c = exec(cmd, function(err, stdout, stderr){
-		if (err) return cb(err);
+		if (err) {
+			console.log('[statRepo] - ERROR - '+err);
+			return cb(err);	
+		} 
 		if (stdout) {
+			
 			if (stdout.indexOf('nothing to commit (working directory clean)') != -1) {
-				return cb(null, {status: 'clean', name: foldername});
+				return cb(null, {status: 'CLEAN'.magenta, name: foldername});
 			} else {
 				var output = {
-					status: 'dirty',
+					status: 'DIRTY'.red,
 					message: stdout,
 					name: foldername
 				};
 				return cb(null, output);
 			}
+		} else {
+			console.log('[statRepo] - '+foldername+' - '+stderr);
+			return cb(stderr);
 		}
 	});
 }
 
 /**
-  checks status for all registered repositories
+  Check the status of ALL register repos
+  @param i {Integer} The index to start at (should almost always be 0)
  */
-var statRepos = function() {
-	if (verbose) {
-		console.log("");
-		utils.printInfo('Checking status of registered repositories');
-	}
-	utils.printNotice('Count: '+config.repos.length);
-	console.log("");
-	if (config && config.repos) {
-		if (config.repos.length == 0) {
-			utils.printWarning('[statrepos] - There are no registered repositories to stat.');
-			process.exit(1);
-		}
-	} else {
-		utils.printError('[statrepos] - Cannot read configuration.');
-		utils.printInfo('[statrepos] - Please make sure you have added at least 1 repository.');
-		process.exit(1);
-	}
-	for (var i=0; i<config.repos.length; i++) {
-		var repo = config.repos[i];
-		statRepo(repo, longOutput, function(err, status){
+var statRepos = function(i) {
+	if (i < config.repos.length) {
+		statRepo(i, function(err, data){
+			var folder = config.repos[i].split("/");
+			var foldername = folder[folder.length-1];
 			if (err) {
-				utils.printError('[statrepos] - Error getting repository statistics.');
-				return;
-			}
-			//var output = JSON.parse(status);
-
-			if (status) {
-				if (status.status == 'clean') {
-					console.log(cyan('[statrepos] - ['+status.name+']')+ '::'+magenta('CLEAN'));
-				} else {
-					if (status.status == 'dirty') {
-						console.log(cyan('[statrepos] - ['+status.name+']')+ '::'+red('DIRTY'));
-						if (longOutput) {
-							utils.printInfo('		\\\\//	');
-							console.log(status.message);
-						}
-					}
-				}	
+				console.log('Error returned');
+				statusTable.push([i.toString(), 'ERROR', foldername]);
 			} else {
-				utils.printError('[statrepos] - An error occurred reading status of repository');
+				if (data.status) {
+					statusTable.push([i.toString(), data.status, foldername]);
+				} else {
+					statusTable.push([i.toString(), 'ERROR', foldername]);
+				}
 			}
-			
+			statRepos(i+1);
 		});
+	} else {
+		console.log(statusTable.toString());
 	}
 }
 
 readConfig();
-processArgs();
 
-if (!shouldAdd && !shouldRemove && !shouldCheck && !shouldList) {
-	usage(false);
+
+if (!program.add && !program.remove && !program.status && !program.list) {
+	program.help();
 }
 
-if (shouldAdd) {
-	for (var i=0; i<reposToAdd.length; i++) {
-		var repo = reposToAdd[i];
-		utils.printNotice('[statrepos] - Attempting to add repository at path ['+repo+']');
-		if (!fs.existsSync(repo)) {
-			utils.printWarning('[statrepos] - ['+repo+'] does not exist.');
+
+if (program.add) {
+	if (typeof program.add === 'string') {
+		console.log(notice('[statrepos] - [ADD] - ['+program.add+']'));
+		if (!fs.existsSync(program.add)) {
+			console.log(warning('[statrepos] - [ADD:ERROR] - ['+program.add+']'));
 		} else {
-			config.repos.push(repo);
+			for (var i=0; i<config.repos.length; i++) {
+				if (config.repos[i] == program.add) {
+					console.log(warning('[statrepos] - [ADD:ERROR] - ['+program.add+' is already being monitored]'));
+					return;
+				}
+			}
+			config.repos.push(program.add);
+			writeConfig(function(err) {
+				if (err) {
+					process.exit(1);
+				} else {
+					if (program.verbose) {
+						console.log(info('[statrepos] - [ADD:SUCCESS] - ['+program.add+']'));	
+					}
+				}
+			});
 		}
+	} else {
+		program.help();
 	}
-	
-	fs.writeFile(configPath(), JSON.stringify(config), function(err){
-		if (err) {
-			utils.printError('[statrepos] - Error saving configuration.');
-			process.exit(1);
-		}
-		utils.printInfo('[statrepos] - Repositories successfully added.');
-		if (verbose) {
-			utils.printNotice('[statrepos] - Run again to get stats.');
-		}
-		process.exit(1);
-	});
-	
 }
 
-if (shouldRemove) {
-	for (var i=0; i<reposToRemove.length; i++) {
-		var repo = reposToRemove[i];
-		utils.printNotice('[statrepos] - Attempting to remove repository at path ['+repo+']');
+if (program.remove) {
+	if (typeof program.remove === 'string') {
+		console.log(notice('[statrepos] - [REMOVE] - ['+program.remove+']'));
 		for (var a=0; a<config.repos.length; a++) {
-			if (config.repos[a] == repo) {
+			if (config.repos[a] == program.remove) {
 				config.repos.splice(a, 1);
+				console.log(info('[statrepos] - [REMOVE:SUCCESS] - ['+program.remove+']'));
+				writeConfig(function(err) {
+					if (err) {
+						process.exit(1);
+					} else {
+						return;
+					}
+				});
 			}
 		}
+	} else {
+		program.help();
 	}
-	
-	fs.writeFile(configPath(), JSON.stringify(config), function(err){
-		if (err) {
-			utils.printError('[statrepos] - Error writing configuration.');
-			process.exit(1);
-		}
-		
-		if (verbose) {
-			utils.printInfo('[statrepos] - Successfully wrote configuration.');
-		}
-		
-		config = require(configPath());
+}
+
+
+if (program.status) {
+	console.log('');
+	console.log(info('Fetching status of each registered repository'));
+	console.log('');
+	var statusTable = new Table({
+		head: ['ID', 'Status', 'Path']
+	});	
+	statRepos(0);
+}
+
+if (program.list) {
+	console.log('');
+	console.log(info('Registered Repositories'));
+	var table = new Table({
+		head: ['ID', 'PATH']
 	});
 	
-}
-
-if (shouldCheck) {
-	statRepos();
-}
-
-
-var padString = function(string, length) {
-	var s = "";
-	if (string.length < length) {
-		if (string.length % 2 == 0) {
-			s += getSpace((length - string.length)/2);
-			s += string;
-			s += getSpace((length - string.length)/2);
-		} else {
-			s += getSpace(((length - string.length)/2)-1);
-			s += string;
-			s += getSpace((length - string.length)/2);
-		}
-	}
-	
-	return s;
-}
-if (shouldList) {
-	var maxWidth = 0;
 	for (var i=0; i<config.repos.length; i++) {
 		var repo = config.repos[i];
-		if (repo.length > maxWidth) {
-			maxWidth = repo.length;
-		}
+		table.push([i.toString(), repo]);
 	}
 	
-	console.log("");
-	utils.printInfo('Registered Repositories');
-	utils.printNotice("Count: "+config.repos.length);
-	console.log(clc.underline(getSpace(maxWidth+12)));
-	console.log(clc.underline('|'+getSpace(2)+'ID'+getSpace(2)+'|'+getSpace(2)+'PATH'+getSpace(maxWidth-3)+'|'));
-	for (var i=0; i<config.repos.length; i++) {
-		var repo = config.repos[i];
-		var right = (i.toString().length == 1) ? 3 : 2;
-		if (i == config.repos.length-1) {
-			console.log(clc.underline('|'+getSpace(2)+i.toString()+getSpace(right)+'|'+getSpace(2)+repo+getSpace(maxWidth-repo.length+1)+'|'));
-		} else {
-			console.log('|'+getSpace(2)+i.toString()+getSpace(right)+'|'+getSpace(2)+repo+getSpace(maxWidth-repo.length+1)+'|');
-		}
-	}
+	console.log(table.toString());
 }
+
 
 

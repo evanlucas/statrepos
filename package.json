@@ -1,7 +1,7 @@
 {
   "name": "statrepos",
-  "version": "0.0.1",
-  "description": "Check the status of multiple repositories (great for end of the day)",
+  "version": "0.0.2",
+  "description": "Check the status of multiple git repositories (great for end of the day)",
   "main": "./bin/statrepos.js",
   "bin": {
     "statrepos": "statrepos.js"
@@ -20,6 +20,8 @@
   "author": "Evan Lucas",
   "license": "GPL",
   "dependencies": {
-    "cli-color": "~0.2.2"
+    "commander": "~1.1.1",
+    "cli-table": "~0.2.0",
+    "colors": "~0.6.0-1"
   }
 }
