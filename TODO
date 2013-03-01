@@ -1,5 +1,0 @@
-Look into https://github.com/visionmedia/commander.js 
-It should clean up the code a good bit
-Also look at https://github.com/visionmedia/dox for generating documentation
-Will have to write something to take the JSON output from dox, and present
-it to the user (fun stuff)
