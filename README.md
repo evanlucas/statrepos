@@ -6,7 +6,9 @@ Makes it easy at the end of the day to make sure all my work is committed.
 
 ### Dependencies
 - [node.js](https://github.com/joyent/node)
-- [cli-color](https://github.com/medikoo/cli-color)
+- [commander.js](https://github.com/visionmedia/commander.js)
+- [cli-table](https://github.com/LearnBoost/cli-table)
+- [colors.js](https://github.com/marak/colors.js)
 
 ### Install
 
@@ -18,13 +20,12 @@ I have included a (as you can see) very basic install script
 
 ### Usage
 
-		./statrepos [-s|--status] [-v|--verbose] [-d|--detailed] [-l|--list]
+		./statrepos [-s|--status] [-v|--verbose] [-l|--list]
 			[-a|--add <dir>] [-r|--remove <dir>]
 
 			-s | --status		Checks the status of registered repositories
 			-v | --verbose		... Verbose
 			-l | --list			Lists registered repositories
-			-d | --detailed		Detailed output (requires -s)
 			-a | --add <dir>	Add directory to be monitored
 			-r | --remove <dir>	Remove directory from monitoring
 
