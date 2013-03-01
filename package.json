@@ -1,0 +1,25 @@
+{
+  "name": "statrepos",
+  "version": "0.0.1",
+  "description": "Check the status of multiple repositories (great for end of the day)",
+  "main": "./bin/statrepos.js",
+  "bin": {
+    "statrepos": "statrepos.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evanlucas/statrepos.git"
+  },
+  "keywords": [
+    "repositories",
+    "helper"
+  ],
+  "author": "Evan Lucas",
+  "license": "GPL",
+  "dependencies": {
+    "cli-color": "~0.2.2"
+  }
+}
