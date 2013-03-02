@@ -22,7 +22,7 @@ var fs = require('fs'),
 	notice = colors.magenta;
 	
 program
-	.version('0.0.2')
+	.version('0.0.3')
 	.usage('[options]')
 	.option('-s, --status', 'Checks the status of registered repositories')
 	.option('-v, --verbose', 'More verbose output')

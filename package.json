@@ -1,6 +1,6 @@
 {
   "name": "statrepos",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Check the status of multiple git repositories (great for end of the day)",
   "main": "./bin/statrepos.js",
   "bin": {
