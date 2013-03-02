@@ -4,6 +4,11 @@ Write something that would check for uncommitted changes in a list of repositori
 ### Why?
 Makes it easy at the end of the day to make sure all my work is committed.
 
+### Details
+Checks the status for repositories using the following version control systems
+- Git
+- Fossil
+
 ### Dependencies
 - [node.js](https://github.com/joyent/node)
 - [commander.js](https://github.com/visionmedia/commander.js)
@@ -14,17 +19,21 @@ Makes it easy at the end of the day to make sure all my work is committed.
 
 		git clone https://github.com/evanlucas/statrepos.git
 
-Then, you can either install it (defaults to /usr/local/bin, and a helper lib to /usr/local/lib) or run it directly from where you cloned it.
+Then, you can either install it (defaults to /usr/local/bin, or run it directly from where you cloned it.
 
 I have included a (as you can see) very basic install script
 
 ### Usage
 
-		./statrepos [-s|--status] [-v|--verbose] [-l|--list]
-			[-a|--add <dir>] [-r|--remove <dir>]
-
+		./statrepos [options]
+		
+		Options:
+		
+		
+			-h | --help			output usage information
+			-V | --version		output the version number
 			-s | --status		Checks the status of registered repositories
-			-v | --verbose		... Verbose
+			-v | --verbose		More verbose output
 			-l | --list			Lists registered repositories
 			-a | --add <dir>	Add directory to be monitored
 			-r | --remove <dir>	Remove directory from monitoring
