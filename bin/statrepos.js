@@ -9,17 +9,17 @@
  */
 
 
-var fs = require('fs'),
-	util = require('util'),
-	program = require('commander'),
-	exec = require('child_process').exec,
-	homedir = process.env['HOME'],
-	colors = require('colors'),
-	Table = require('cli-table'),
-	error = colors.red,
-	warning = colors.yellow,
-	info = colors.cyan,
-	notice = colors.magenta;
+var fs = require('fs')
+	, util = require('util')
+	, program = require('commander')
+	, exec = require('child_process').exec
+	, homedir = process.env['HOME']
+	, colors = require('colors')
+	, Table = require('cli-table')
+	, error = colors.red
+	, warning = colors.yellow
+	, info = colors.cyan
+	, notice = colors.magenta;
 	
 program
 	.version('0.0.3')
