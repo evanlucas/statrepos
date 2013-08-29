@@ -17,12 +17,7 @@ Checks the status for repositories using the following version control systems
 
 ### Install
 
-		git clone https://github.com/evanlucas/statrepos.git
-
-Then, you can either install it (defaults to /usr/local/bin, or run it directly from where you cloned it.
-
-I have included a (as you can see) very basic install script
-
+		npm install -g git+https://github.com/evanlucas/statrepos.git
 ### Usage
 
 		./statrepos [options]

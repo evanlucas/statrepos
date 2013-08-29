@@ -3,9 +3,6 @@
   "version": "0.0.3",
   "description": "Check the status of multiple git repositories (great for end of the day)",
   "main": "./bin/statrepos.js",
-  "bin": {
-    "statrepos": "statrepos.js"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,9 +16,13 @@
   ],
   "author": "Evan Lucas",
   "license": "GPL",
+  "bin": {
+    "statrepos": "./bin/statrepos.js"
+  },
   "dependencies": {
     "commander": "~1.1.1",
     "cli-table": "~0.2.0",
-    "colors": "~0.6.0-1"
+    "colors": "~0.6.0-1",
+    "loggerjs": "git+https://gitlab.com/evanlucas/loggerjs.git"
   }
 }
